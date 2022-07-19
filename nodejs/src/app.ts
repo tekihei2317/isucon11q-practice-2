@@ -11,6 +11,7 @@ import morgan from "morgan";
 import multer, { MulterError } from "multer";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import qs from "qs";
+import { storeIsuCondition } from "./use-cases/store-isu-condition";
 
 interface Config extends RowDataPacket {
   name: string;
@@ -1122,53 +1123,7 @@ app.post(
     >,
     res
   ) => {
-    // TODO: 一定割合リクエストを落としてしのぐようにしたが、本来は全量さばけるようにすべき
-    const dropProbability = 0.9;
-    if (Math.random() <= dropProbability) {
-      console.warn("drop post isu condition request");
-      return res.status(202).send();
-    }
-
-    const db = await pool.getConnection();
-    try {
-      const jiaIsuUUID = req.params.jia_isu_uuid;
-
-      const request = req.body;
-      if (!isValidPostIsuConditionRequest(request) || request.length === 0) {
-        return res.status(400).type("text").send("bad request body");
-      }
-
-      const [[{ cnt }]] = await db.query<(RowDataPacket & { cnt: number })[]>(
-        "SELECT COUNT(*) AS `cnt` FROM `isu` WHERE `jia_isu_uuid` = ?",
-        [jiaIsuUUID]
-      );
-      if (cnt === 0) {
-        return res.status(404).type("text").send("not found: isu");
-      }
-
-      if(request.some((cond) => !isValidConditionFormat(cond.condition))) {
-        return res.status(400).type("text").send("bad request body");
-      }
-
-      const parameters = request.map((cond) => {
-        const timestamp = new Date(cond.timestamp * 1000);
-        return [jiaIsuUUID, timestamp, cond.is_sitting, cond.condition, cond.message]
-      })
-
-      await db.query(
-        "INSERT INTO `isu_condition`" +
-        "	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)" +
-        "	VALUES ?",
-        [parameters]
-      )
-
-      return res.status(202).send();
-    } catch (err) {
-      console.error(`db error: ${err}`);
-      return res.status(500).send();
-    } finally {
-      db.release();
-    }
+    storeIsuCondition(req, res);
   }
 );
 
