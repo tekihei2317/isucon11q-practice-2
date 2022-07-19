@@ -3,7 +3,7 @@ include env.sh
 USER=isucon
 
 NGINX_LOG=/var/log/nginx/access.log
-MYSQL_LOG=/var/log/mysql/mysql-slow.log
+MYSQL_LOG=/var/log/mysql/mariadb-slow.log
 
 # サービスの管理
 reload-nginx:
