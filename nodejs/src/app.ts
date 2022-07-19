@@ -1138,24 +1138,20 @@ app.post(
         return res.status(400).type("text").send("bad request body");
       }
 
-      await db.beginTransaction();
-
       const [[{ cnt }]] = await db.query<(RowDataPacket & { cnt: number })[]>(
         "SELECT COUNT(*) AS `cnt` FROM `isu` WHERE `jia_isu_uuid` = ?",
         [jiaIsuUUID]
       );
       if (cnt === 0) {
-        await db.rollback();
         return res.status(404).type("text").send("not found: isu");
+      }
+
+      if(request.some((cond) => !isValidConditionFormat(cond.condition))) {
+        return res.status(400).type("text").send("bad request body");
       }
 
       for (const cond of request) {
         const timestamp = new Date(cond.timestamp * 1000);
-
-        if (!isValidConditionFormat(cond.condition)) {
-          await db.rollback();
-          return res.status(400).type("text").send("bad request body");
-        }
 
         await db.query(
           "INSERT INTO `isu_condition`" +
@@ -1165,12 +1161,9 @@ app.post(
         );
       }
 
-      await db.commit();
-
       return res.status(202).send();
     } catch (err) {
       console.error(`db error: ${err}`);
-      await db.rollback();
       return res.status(500).send();
     } finally {
       db.release();

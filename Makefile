@@ -12,6 +12,7 @@ reload-nginx:
 
 APP_SERVICE=isucondition.nodejs.service
 reload-app:
+	cd nodejs && npm run build
 	sudo systemctl restart $(APP_SERVICE)
 status-app:
 	sudo systemctl status $(APP_SERVICE)

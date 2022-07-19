@@ -1,0 +1,59 @@
+make[1]: Entering directory '/home/isucon/webapp'
+sudo pt-query-digest /var/log/mysql/mariadb-slow.log
+
+# 6.7s user time, 20ms system time, 34.67M rss, 41.89M vsz
+# Current date: Tue Jul 19 12:11:23 2022
+# Hostname: ip-172-31-36-52
+# Files: /var/log/mysql/mariadb-slow.log
+# Overall: 74.64k total, 65 unique, 1.08k QPS, 4.12x concurrency _________
+# Time range: 2022-07-19 12:09:43 to 12:10:52
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time           284s       0    97ms     4ms     7ms     2ms     4ms
+# Lock time             2s       0     9ms    27us    38us    73us    27us
+# Rows sent         16.35k       0      72    0.22    0.99    2.11       0
+# Rows examine       9.53k       0      81    0.13       0    2.16       0
+# Rows affecte      63.43k       0     618    0.87    0.99    2.19    0.99
+# Bytes sent        35.62M       0 646.78k  500.38   56.92   7.02k   12.54
+# Query size        25.90M       6 790.36k  363.80  271.23   3.63k  258.32
+# Boolean:
+# QC hit         9% yes,  90% no
+
+# Profile
+# Rank Query ID                      Response time  Calls R/Call V/M   Ite
+# ==== ============================= ============== ===== ====== ===== ===
+#    1 0xB8B32624C3268C0925657C30... 282.4351 99.3% 64189 0.0044  0.00 INSERT isu_condition
+# MISC 0xMISC                          2.0498  0.7% 10450 0.0002   0.0 <64 ITEMS>
+
+# Query 1: 1.02k QPS, 4.48x concurrency, ID 0xB8B32624C3268C0925657C305C0ED778 at byte 22657940
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.00
+# Time range: 2022-07-19 12:09:49 to 12:10:52
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         85   64189
+# Exec time     99    282s   765us    46ms     4ms     8ms     2ms     4ms
+# Lock time     93      2s     9us     9ms    30us    38us    75us    28us
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Rows affecte  98  62.68k       1       1       1       1       0       1
+# Bytes sent     2 814.90k      13      13      13      13       0      13
+# Query size    62  16.30M     240     309  266.23  271.23   12.70  258.32
+# String:
+# Databases    isucondition
+# Hosts        localhost
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us
+# 100us  #
+#   1ms  ################################################################
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+INSERT INTO `isu_condition`	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)	VALUES ('e3234906-732c-4bbd-b4bd-307ed01441dc', '2021-08-20 00:22:24.000', true, 'is_dirty=true,is_overweight=true,is_broken=true', 'ドロドロのボロボロのヘロヘロだ！　なんとかしてくれ！')\G
+make[1]: Leaving directory '/home/isucon/webapp'
