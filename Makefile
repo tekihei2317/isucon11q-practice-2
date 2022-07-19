@@ -37,7 +37,7 @@ clear-logs:
 	echo '' | sudo tee $(NGINX_LOG) > /dev/null
 	echo '' | sudo tee $(MYSQL_LOG) > /dev/null
 
-before-bench: clear-logs watch-log-app
+before-bench: clear-logs reload-app watch-log-app
 
 bench:
 	cd ../bench && ./bench -all-addresses 127.0.0.11 -target 127.0.0.11:443 -tls -jia-service-url http://127.0.0.1:4999
@@ -52,11 +52,21 @@ alp:
 pt-query-digest:
 	sudo pt-query-digest $(MYSQL_LOG)
 
+.SILENT:
+flame-graph:
+	$(eval latest_log := $(shell ls -tr nodejs/isolate-*.log | tail -n 1))
+	node --prof-process --preprocess -j $(latest_log) | flamebearer > /dev/null
+	cat flamegraph.html
+
+show-analysis:
+	http-server measurements
+
 analyze:
 	$(eval DIR := measurements/$(shell date +%Y%m%d-%H%M%S))
 	mkdir -p $(DIR)
 	@make alp > $(DIR)/alp.log
 	@make pt-query-digest > $(DIR)/query.log
+	@make flame-graph > $(DIR)/flamegraph.html
 
 # ツールのインストール
 setup-git:
@@ -72,7 +82,8 @@ install-alp:
 
 setup:
 	@make install-alp
-	sudo apt update && sudo apt install -y percona-toolkit jq net-tools dstat
+	sudo apt update && sudo apt install -y percona-toolkit jq net-tools dstat graphviz
+	npm install -g flamebearer http-server
 
 # 設定ファイルの取得、反映
 check-server-id:
@@ -101,3 +112,10 @@ deploy-nginx-conf:
 
 deploy-db-conf:
 	sudo cp -R $(SERVER_ID)$(DB_CONF_PATH)/* $(DB_CONF_PATH)
+
+# リクエスト
+BASE_URL=http://localhost:3000
+
+# 認証が必要なためエラーになる
+get-condition:
+	curl $(BASE_URL)/api/condition/3a8ae675-3702-45b5-b1eb-1e56e96738ea
