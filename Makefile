@@ -7,7 +7,7 @@ MYSQL_LOG=/var/log/mysql/mysql-slow.log
 
 # サービスの管理
 reload-nginx:
-	cat settings/nginx/nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null
+	@make deploy-nginx-conf
 	sudo nginx -s reload
 
 APP_SERVICE=isucondition.nodejs.service
@@ -18,7 +18,7 @@ status-app:
 
 MYSQL_SERVICE=mysql.service
 reload-mysql:
-	cat settings/mysql/mysql.conf.d/mysqld.cnf | sudo tee /etc/mysql/mysql.conf.d/mysqld.cnf > /dev/null
+	@make deploy-db-conf
 	sudo systemctl restart $(MYSQL_SERVICE)
 status-mysql:
 	sudo systemctl status $(MYSQL_SERVICE)
@@ -97,3 +97,4 @@ deploy-nginx-conf:
 	sudo cp -R $(SERVER_ID)$(NGINX_CONF_PATH)/* $(NGINX_CONF_PATH)
 
 deploy-db-conf:
+	sudo cp -R $(SERVER_ID)$(DB_CONF_PATH)/* $(DB_CONF_PATH)
