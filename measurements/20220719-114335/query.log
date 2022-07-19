@@ -1,0 +1,125 @@
+make[1]: Entering directory '/home/isucon/webapp'
+sudo pt-query-digest /var/log/mysql/mariadb-slow.log
+
+# 8s user time, 30ms system time, 35.05M rss, 42.13M vsz
+# Current date: Tue Jul 19 11:43:44 2022
+# Hostname: ip-172-31-36-52
+# Files: /var/log/mysql/mariadb-slow.log
+# Overall: 93.30k total, 65 unique, 1.41k QPS, 0.58x concurrency _________
+# Time range: 2022-07-19 11:41:41 to 11:42:47
+# Attribute          total     min     max     avg     95%  stddev  median
+# ============     ======= ======= ======= ======= ======= ======= =======
+# Exec time            38s     1us    94ms   410us     3ms     1ms    60us
+# Lock time             2s       0     7ms    21us    33us    41us    23us
+# Rows sent        310.79k       0   1.33k    3.41    0.99   54.75       0
+# Rows examine     305.18k       0   1.33k    3.35       0   54.78       0
+# Rows affecte      66.75k       0     618    0.73    0.99    1.99    0.99
+# Bytes sent       112.71M       0 270.36k   1.24k   56.92  13.20k   12.54
+# Query size        22.51M       6 790.36k  252.99  271.23   3.18k  246.02
+# Boolean:
+# QC hit         9% yes,  90% no
+
+# Profile
+# Rank Query ID                      Response time Calls R/Call V/M   Item
+# ==== ============================= ============= ===== ====== ===== ====
+#    1 0xFFFCA4D67EA0A788813031B8... 28.1495 73.5%  7067 0.0040  0.00 COMMIT
+#    2 0xB8B32624C3268C0925657C30...  6.5422 17.1% 67587 0.0001  0.00 INSERT isu_condition
+#    3 0x931A992E852C61FC6D46141A...  2.1237  5.5%   589 0.0036  0.01 SELECT isu_condition
+# MISC 0xMISC                         1.4578  3.8% 18055 0.0001   0.0 <62 ITEMS>
+
+# Query 1: 115.85 QPS, 0.46x concurrency, ID 0xFFFCA4D67EA0A788813031B8BBC3B329 at byte 30924044
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.00
+# Time range: 2022-07-19 11:41:46 to 11:42:47
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          7    7067
+# Exec time     73     28s     5us    28ms     4ms     7ms     2ms     3ms
+# Lock time      0       0       0       0       0       0       0       0
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent     0  75.92k      11      11      11      11       0      11
+# Query size     0  41.41k       6       6       6       6       0       6
+# String:
+# Databases    isucondition
+# Hosts        localhost
+# Users        isucon
+# Query_time distribution
+#   1us  #
+#  10us  #
+# 100us  #
+#   1ms  ################################################################
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+COMMIT\G
+
+# Query 2: 1.11k QPS, 0.11x concurrency, ID 0xB8B32624C3268C0925657C305C0ED778 at byte 5917879
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.00
+# Time range: 2022-07-19 11:41:46 to 11:42:47
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count         72   67587
+# Exec time     17      7s    23us    22ms    96us    98us   449us    63us
+# Lock time     93      2s    10us     7ms    28us    35us    40us    26us
+# Rows sent      0       0       0       0       0       0       0       0
+# Rows examine   0       0       0       0       0       0       0       0
+# Rows affecte  98  66.00k       1       1       1       1       0       1
+# Bytes sent     0 860.65k      13      14   13.04   12.54    0.25   12.54
+# Query size    75  17.04M     240     296  264.39  271.23   11.64  258.32
+# String:
+# Databases    isucondition
+# Hosts        localhost
+# Users        isucon
+# Query_time distribution
+#   1us
+#  10us  ################################################################
+# 100us  ###
+#   1ms  #
+#  10ms  #
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+INSERT INTO `isu_condition`	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)	VALUES ('d59ff784-b1a1-4bf5-bb0d-60c3e79de8af', '2021-08-11 10:05:32.000', true, 'is_dirty=false,is_overweight=false,is_broken=true', '壊れています！')\G
+
+# Query 3: 10.71 QPS, 0.04x concurrency, ID 0x931A992E852C61FC6D46141A39DEF4FE at byte 41377960
+# This item is included in the report because it matches --limit.
+# Scores: V/M = 0.01
+# Time range: 2022-07-19 11:41:46 to 11:42:41
+# Attribute    pct   total     min     max     avg     95%  stddev  median
+# ============ === ======= ======= ======= ======= ======= ======= =======
+# Count          0     589
+# Exec time      5      2s     8us    42ms     4ms    16ms     6ms   287us
+# Lock time      0    14ms       0   313us    23us    38us    21us    27us
+# Rows sent     73 227.76k       0   1.33k  395.97   1.20k  507.56   11.95
+# Rows examine  73 224.00k       0   1.33k  389.44   1.20k  512.05   11.95
+# Rows affecte   0       0       0       0       0       0       0       0
+# Bytes sent    35  39.94M     589 244.22k  69.44k 211.82k  88.62k   2.62k
+# Query size     0  66.15k     115     115     115     115       0     115
+# Boolean:
+# QC hit        29% yes,  70% no
+# String:
+# Databases    isucondition
+# Hosts        localhost
+# Users        isucon
+# Query_time distribution
+#   1us  #
+#  10us  ###########################################################
+# 100us  ################################################################
+#   1ms  ##################################################
+#  10ms  ###############################
+# 100ms
+#    1s
+#  10s+
+# Tables
+#    SHOW TABLE STATUS FROM `isucondition` LIKE 'isu_condition'\G
+#    SHOW CREATE TABLE `isucondition`.`isu_condition`\G
+# EXPLAIN /*!50100 PARTITIONS*/
+SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = '9f499aaa-c1e2-4336-babc-60e9459c85d5' ORDER BY timestamp DESC\G
+make[1]: Leaving directory '/home/isucon/webapp'
