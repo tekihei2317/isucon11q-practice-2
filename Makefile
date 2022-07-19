@@ -1,6 +1,6 @@
 include env.sh
 
-USER= isucon
+USER=isucon
 
 NGINX_LOG=/var/log/nginx/access.log
 MYSQL_LOG=/var/log/mysql/mysql-slow.log
@@ -10,16 +10,18 @@ reload-nginx:
 	cat settings/nginx/nginx.conf | sudo tee /etc/nginx/nginx.conf > /dev/null
 	sudo nginx -s reload
 
-APP_SERVICE=TODO:
+APP_SERVICE=isucondition.nodejs.service
 reload-app:
 	sudo systemctl restart $(APP_SERVICE)
 status-app:
 	sudo systemctl status  $(APP_SERVICE)
 
-MYSQL_SERVICE=TODO:
+MYSQL_SERVICE=mysql.service
 reload-mysql:
 	cat settings/mysql/mysql.conf.d/mysqld.cnf | sudo tee /etc/mysql/mysql.conf.d/mysqld.cnf > /dev/null
 	sudo systemctl restart $(MYSQL_SERVICE)
+status-mysql:
+	sudo systemctl status $(MYSQL_SERVICE)
 
 MYSQL_USER=isucon
 MYSQL_PASSWORD=isucon
@@ -27,7 +29,16 @@ MYSQL_DATABASE=isucondition
 enter-mysql:
 	mysql -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) -D $(MYSQL_DATABASE)
 
-# 分析
+# 計測・分析
+clear-logs:
+	echo '' | sudo tee $(NGINX_LOG) > /dev/null
+	echo '' | sudo tee $(MYSQL_LOG) > /dev/null
+
+before-bench: clear-logs
+
+bench:
+	cd ../bench && ./bench -all-addresses 127.0.0.11 -target 127.0.0.11:443 -tls -jia-service-url http://127.0.0.1:4999
+
 ALPSORT=sum
 ALPM="TODO:"
 OUTFORMAT=count,method,uri,min,max,sum,avg,p99,1xx,2xx,3xx,4xx,5xx
@@ -37,10 +48,6 @@ alp:
 
 pt-query-digest:
 	sudo pt-query-digest $(MYSQL_LOG)
-
-clear-logs:
-	echo '' | sudo tee $(NGINX_LOG) > /dev/null
-	echo '' | sudo tee $(MYSQL_LOG) > /dev/null
 
 analyze:
 	$(eval DIR := measurements/$(shell date +%Y%m%d-%H%M%S))
@@ -62,7 +69,7 @@ install-alp:
 
 setup:
 	@make install-alp
-	sudo apt update && sudo apt install -y percona-toolkit jq net-tools
+	sudo apt update && sudo apt install -y percona-toolkit jq net-tools dstat
 
 # 設定ファイルの取得、反映
 check-server-id:
@@ -73,7 +80,20 @@ else
 	@exit 1
 endif
 
+NGINX_CONF_PATH=/etc/nginx
 DB_CONF_PATH=/etc/mysql
+
+get-nginx-conf:
+	mkdir -p $(SERVER_ID)$(NGINX_CONF_PATH)
+	sudo cp -R $(NGINX_CONF_PATH)/* $(SERVER_ID)$(NGINX_CONF_PATH)
+	sudo chown -R $(USER) $(SERVER_ID)$(NGINX_CONF_PATH)
+
 get-db-conf:
-	mkdir -p $(SERVER_ID)/$(DB_CONF_PATH)
-	sudo cp -R $(DB_CONF_PATH)/* $(SERVER_ID)/$(DB_CONF_PATH)
+	mkdir -p $(SERVER_ID)$(DB_CONF_PATH)
+	sudo cp -R $(DB_CONF_PATH)/* $(SERVER_ID)$(DB_CONF_PATH)
+	sudo chown -R $(USER) $(SERVER_ID)$(DB_CONF_PATH)
+
+deploy-nginx-conf:
+	sudo cp -R $(SERVER_ID)$(NGINX_CONF_PATH)/* $(NGINX_CONF_PATH)
+
+deploy-db-conf:
