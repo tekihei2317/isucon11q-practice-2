@@ -1150,16 +1150,17 @@ app.post(
         return res.status(400).type("text").send("bad request body");
       }
 
-      for (const cond of request) {
+      const parameters = request.map((cond) => {
         const timestamp = new Date(cond.timestamp * 1000);
+        return [jiaIsuUUID, timestamp, cond.is_sitting, cond.condition, cond.message]
+      })
 
-        await db.query(
-          "INSERT INTO `isu_condition`" +
-            "	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)" +
-            "	VALUES (?, ?, ?, ?, ?)",
-          [jiaIsuUUID, timestamp, cond.is_sitting, cond.condition, cond.message]
-        );
-      }
+      await db.query(
+        "INSERT INTO `isu_condition`" +
+        "	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)" +
+        "	VALUES ?",
+        [parameters]
+      )
 
       return res.status(202).send();
     } catch (err) {
