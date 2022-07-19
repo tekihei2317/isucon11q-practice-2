@@ -1037,7 +1037,7 @@ app.get("/api/trend", async (req, res) => {
       const characterCriticalIsuConditions = [];
       for (const isu of isuList) {
         const [conditions] = await db.query<IsuCondition[]>(
-          "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? ORDER BY timestamp DESC",
+          "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ? ORDER BY timestamp DESC limit 1",
           [isu.jia_isu_uuid]
         );
 

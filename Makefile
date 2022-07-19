@@ -116,6 +116,8 @@ deploy-db-conf:
 # リクエスト
 BASE_URL=http://localhost:3000
 
+get-trend:
+	curl $(BASE_URL)/api/trend
 # 認証が必要なためエラーになる
 get-condition:
 	curl $(BASE_URL)/api/condition/3a8ae675-3702-45b5-b1eb-1e56e96738ea
