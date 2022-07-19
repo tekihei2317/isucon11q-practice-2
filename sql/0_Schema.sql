@@ -21,6 +21,10 @@ CREATE TABLE `isu_condition` (
   `timestamp` DATETIME NOT NULL,
   `is_sitting` TINYINT(1) NOT NULL,
   `condition` VARCHAR(255) NOT NULL,
+  -- `is_dirty` TINYINT(1) NOT NULL,
+  -- `is_overweight` TINYINT(1) NOT NULL,
+  -- `is_broken` TINYINT(1) NOT NULL,
+  -- `condition_level` VARCHAR(255) NOT NULL,
   `message` VARCHAR(255) NOT NULL,
   `created_at` DATETIME(6) DEFAULT CURRENT_TIMESTAMP(6),
   PRIMARY KEY(`id`)

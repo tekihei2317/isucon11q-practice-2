@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>flamebearer</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<style>
+    html, body { height: 100%; }
+    body { font: 16px "Helvetica Neue", sans-serif; margin: 0; }
+    body.hover { background: #cfc; }
+    h1 { font-size: 30px; margin: 30px 30px 15px; }
+    h1 a { color: black; text-decoration: none; }
+    h1 a:hover { text-decoration: underline; }
+    #fire-icon { fill: #f53; width: 26px; height: 26px; vertical-align: -1px; }
+    #intro { margin: 0 30px; }
+    code { font-size: 13px; color: #444; }
+    code span { color: #aaa; }
+    #canvas { width: 100%; }
+    #controls { display: none; }
+    #search { margin-right: 10px; }
+    #highlight { position: absolute; pointer-events: none; background: #ffffff40; }
+    .loaded #intro { display: none; }
+    .loaded #header { display: flex; align-items: center; flex-flow: row wrap; padding: 7px 10px; }
+    .loaded h1 { font-size: 22px; margin: 0 auto 0 0; flex-shrink: 0; }
+    .loaded #fire-icon { width: 20px; height: 20px; }
+    .loaded #controls { display: block; flex-shrink: 0; }
+    #tooltip { position: absolute; pointer-events: none; background: #ffffff; white-space: nowrap; box-shadow: 1px 2px 4px 0px rgba(0,0,0,0.3); border-radius: 2px; padding: 3px 5px; font: 12px Tahoma, sans-serif; display: none; }
+    #tooltip .path { color: #888; font-size: 11px; }
+    #tooltip .time { color: #4a4; }
+</style>
+</head>
+<body>
+
+<div id="header">
+    <h1><svg id="fire-icon" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 15 15" style="enable-background:new 0 0 15 15;" xml:space="preserve"><path d="M7.5,0.5L5,4.5l-1.5-2 C2.9452,3.4753,0.8036,5.7924,0.8036,8.3036C0.8036,12.002,3.8017,15,7.5,15s6.6964-2.998,6.6964-6.6964 c0-2.5112-2.1416-4.8283-2.6964-5.8036l-1.5,2L7.5,0.5z M7.5,7c0,0,2.5,2.5618,2.5,4.5c0,0.8371-0.8259,2-2.5,2S5,12.3371,5,11.5 C5,9.6283,7.5,7,7.5,7z"/></svg> <a href="https://github.com/mapbox/flamebearer">flamebearer</a></h1>
+    <div id="controls">
+        <input id="search" placeholder="Search..." />
+        <button id="reset">Reset view</button>
+    </div>
+</div>
+<div id="highlight"></div>
+<div id="tooltip"></div>
+<div id="intro"><!--  --></div>
+<canvas id="canvas" height="0"></canvas>
+
+<!--  -->
+<script>'use strict';
+
+const introEl = document.getElementById('intro');
+const searchEl = document.getElementById('search');
+const highlightEl = document.getElementById('highlight');
+const tooltipEl = document.getElementById('tooltip');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let names, levels, numTicks;
+
+names = ["(unknown)","~(anonymous) internal/main/run_main_module.js:1:1","~prepareMainThreadExecution internal/bootstrap/pre_execution.js:21:36","~initializePolicy internal/bootstrap/pre_execution.js:370:26","(lib) /home/isucon/local/node/bin/node","(unknown)","~initializeCJSLoader internal/bootstrap/pre_execution.js:426:29","~nativeModuleRequire internal/bootstrap/loaders.js:306:29","~compileForInternalLoader internal/bootstrap/loaders.js:273:27","~(anonymous) internal/modules/cjs/loader.js:1:1","~(anonymous) internal/source_map/source_map_cache.js:1:1","~(anonymous) fs.js:1:1","~initializeFrozenIntrinsics internal/bootstrap/pre_execution.js:451:36","~getOptionValue internal/options.js:28:24","~executeUserEntryPoint internal/modules/run_main.js:69:31","~shouldUseESMLoader internal/modules/run_main.js:27:28","~readPackageScope internal/modules/cjs/loader.js:288:26","~readPackage internal/modules/cjs/loader.js:257:21","~read internal/modules/package_json_reader.js:16:14","~Module._load internal/modules/cjs/loader.js:724:24","~Module.load internal/modules/cjs/loader.js:925:33","~Module._extensions..js internal/modules/cjs/loader.js:1081:37","~Module._compile internal/modules/cjs/loader.js:1026:37","~(anonymous) ./build/app.js:1:1","~require internal/modules/cjs/helpers.js:91:31","~Module.require internal/modules/cjs/loader.js:953:36","~loadNativeModule internal/modules/cjs/helpers.js:35:26","~compileForPublicLoader internal/bootstrap/loaders.js:220:25","~getESMFacade internal/bootstrap/loaders.js:238:15","~(anonymous) internal/bootstrap/loaders.js:247:15","~syncExports internal/bootstrap/loaders.js:261:14","~getOwn internal/bootstrap/loaders.js:154:16","~get ReadStream fs.js:2169:17","~lazyLoadStreams fs.js:2062:25","~(anonymous) internal/fs/streams.js:1:1","~(anonymous) ./node_modules/axios/index.js:1:1","~resolve path.js:1067:10","~normalizeString path.js:59:25","~(anonymous) ./node_modules/axios/lib/axios.js:1:1","~(anonymous) ./node_modules/axios/lib/core/Axios.js:1:1","~(anonymous) ./node_modules/axios/lib/helpers/buildURL.js:1:1","~Module._resolveFilename internal/modules/cjs/loader.js:804:35","~trySelf internal/modules/cjs/loader.js:408:17","~(anonymous) ./node_modules/axios/lib/core/dispatchRequest.js:1:1","~Module._findPath internal/modules/cjs/loader.js:461:28","~tryExtensions internal/modules/cjs/loader.js:367:23","~tryFile internal/modules/cjs/loader.js:351:17","~toRealPath internal/modules/cjs/loader.js:360:20","~realpathSync fs.js:1718:22","~Module._resolveLookupPaths internal/modules/cjs/loader.js:634:38","~dirname path.js:1247:10","~(anonymous) ./node_modules/cookie-session/index.js:1:1","~resolveExports internal/modules/cjs/loader.js:439:24","~(anonymous) ./node_modules/express/index.js:1:1","~(anonymous) ./node_modules/express/lib/express.js:1:1","~(anonymous) ./node_modules/body-parser/index.js:1:1","~(anonymous) ./node_modules/body-parser/node_modules/depd/index.js:1:1","~readFileSync fs.js:391:22","~toString buffer.js:775:46","~getEncodingOps buffer.js:676:24","~tryCreateBuffer fs.js:364:25","~allocUnsafe buffer.js:382:42","~allocate buffer.js:407:18","~createUnsafeBuffer buffer.js:149:28","~FastBuffer internal/buffer.js:955:14","~(anonymous) ./node_modules/express/lib/application.js:1:1","~(anonymous) ./node_modules/finalhandler/index.js:1:1","~openSync fs.js:489:18","~(anonymous) ./node_modules/express/lib/router/index.js:1:1","~(anonymous) ./node_modules/express/lib/router/route.js:1:1","~(anonymous) ./node_modules/express/node_modules/depd/index.js:1:1","~tryPackage internal/modules/cjs/loader.js:305:20","~(anonymous) ./node_modules/express/lib/middleware/query.js:1:1","~(anonymous) ./node_modules/qs/lib/index.js:1:1","~splitRoot fs.js:1681:33","~(anonymous) ./node_modules/express/lib/utils.js:1:1","~depd ./node_modules/express/node_modules/depd/index.js:105:15","~callSiteLocation ./node_modules/express/node_modules/depd/index.js:251:27","~(anonymous) ./node_modules/send/index.js:1:1","~(anonymous) ./node_modules/http-errors/index.js:1:1","~populateConstructorExports ./node_modules/http-errors/index.js:242:37","~forEachCode ./node_modules/http-errors/index.js:243:38","~createClientErrorConstructor ./node_modules/http-errors/index.js:132:39","~inherits util.js:217:18","~(anonymous) ./node_modules/mime/mime.js:1:1","~Module._extensions..json internal/modules/cjs/loader.js:1106:39","~Mime.define ./node_modules/mime/mime.js:21:34","~wrapfunction ./node_modules/send/node_modules/depd/index.js:397:23","~getStack ./node_modules/send/node_modules/depd/index.js:365:19","~(anonymous) ./node_modules/proxy-addr/index.js:1:1","~makeRequireFunction internal/modules/cjs/helpers.js:48:29","~(anonymous) ./node_modules/express/lib/request.js:1:1","~(anonymous) ./node_modules/accepts/index.js:1:1","~(anonymous) ./node_modules/mime-types/index.js:1:1","~(anonymous) ./node_modules/mime-db/index.js:1:1","~populateMaps ./node_modules/mime-types/index.js:154:23","~(anonymous) ./node_modules/express/lib/response.js:1:1","normalizeString path.js:59:25","~get ./node_modules/body-parser/index.js:122:23","~loadParser ./node_modules/body-parser/index.js:132:21","~(anonymous) ./node_modules/body-parser/lib/types/json.js:1:1","~(anonymous) ./node_modules/body-parser/lib/read.js:1:1","~(anonymous) ./node_modules/raw-body/index.js:1:1","~(anonymous) ./node_modules/iconv-lite/lib/index.js:1:1","(lib) /usr/lib/x86_64-linux-gnu/libc-2.31.so","~(anonymous) ./node_modules/jsonwebtoken/index.js:1:1","~(anonymous) ./node_modules/jsonwebtoken/decode.js:1:1","~(anonymous) ./node_modules/jws/index.js:1:1","~(anonymous) ./node_modules/jws/lib/sign-stream.js:1:1","~(anonymous) ./node_modules/jsonwebtoken/verify.js:1:1","~(anonymous) ./node_modules/jsonwebtoken/lib/timespan.js:1:1","(C++) __libc_free","~(anonymous) ./node_modules/jsonwebtoken/lib/psSupported.js:1:1","~satisfies ./node_modules/semver/semver.js:1251:20","~Range ./node_modules/semver/semver.js:835:16","~(anonymous) ./node_modules/semver/semver.js:866:53","~Range.parseRange ./node_modules/semver/semver.js:891:39","~(anonymous) ./node_modules/semver/semver.js:915:43","~parseComparator ./node_modules/semver/semver.js:960:26","~replaceCarets ./node_modules/semver/semver.js:1023:24","(C++) __libc_malloc","~replaceTildes ./node_modules/semver/semver.js:983:24","~(anonymous) ./node_modules/semver/semver.js:984:48","~replaceTilde ./node_modules/semver/semver.js:989:23","~replaceXRanges ./node_modules/semver/semver.js:1081:25","~(anonymous) ./node_modules/semver/semver.js:1083:41","~replaceXRange ./node_modules/semver/semver.js:1088:24","(C++) __lll_lock_wait","~(anonymous) ./node_modules/semver/semver.js:924:26","~Comparator ./node_modules/semver/semver.js:714:21","~Comparator.parse ./node_modules/semver/semver.js:749:39","~SemVer ./node_modules/semver/semver.js:291:17","(C++) __mprotect","~(anonymous) ./node_modules/jsonwebtoken/sign.js:1:1","~hidden internal/errors.js:306:25","~(anonymous) internal/fs/utils.js:632:38","~isUint32 internal/validators.js:34:18","~(anonymous) ./node_modules/multer/index.js:1:1","~(anonymous) ./node_modules/multer/lib/make-middleware.js:1:1","~(anonymous) ./node_modules/busboy/lib/main.js:1:1","~(anonymous) ./node_modules/busboy/lib/types/multipart.js:1:1","~(anonymous) ./node_modules/dicer/lib/Dicer.js:1:1","~(anonymous) ./node_modules/dicer/lib/PartStream.js:1:1","~(anonymous) ./node_modules/append-field/index.js:1:1","Module._nodeModulePaths internal/modules/cjs/loader.js:596:37","~(anonymous) ./node_modules/multer/storage/memory.js:1:1","~(anonymous) ./node_modules/concat-stream/index.js:1:1","~(anonymous) ./node_modules/concat-stream/node_modules/readable-stream/readable.js:1:1","~(anonymous) ./node_modules/concat-stream/node_modules/readable-stream/lib/_stream_readable.js:1:1","~(anonymous) ./node_modules/concat-stream/node_modules/readable-stream/lib/internal/streams/BufferList.js:1:1","resolve path.js:1067:10","~packageExportsResolve internal/modules/esm/resolve.js:476:31","~resolvePackageTarget internal/modules/esm/resolve.js:380:30","~resolvePackageTargetString internal/modules/esm/resolve.js:326:36","~(anonymous) ./node_modules/mysql2/promise.js:1:1","~(anonymous) ./node_modules/mysql2/index.js:1:1","~(anonymous) ./node_modules/mysql2/lib/connection.js:1:1","~(anonymous) ./node_modules/mysql2/lib/packet_parser.js:1:1","~(anonymous) ./node_modules/mysql2/lib/packets/packet.js:1:1","~(anonymous) ./node_modules/mysql2/lib/constants/errors.js:1:1","~(anonymous) ./node_modules/mysql2/lib/parsers/string.js:1:1","~Module internal/modules/cjs/loader.js:162:16","~validateString internal/validators.js:122:24","~(anonymous) ./node_modules/mysql2/lib/packets/index.js:1:1","~maybeCacheSourceMap internal/source_map/source_map_cache.js:60:29","~(anonymous) ./node_modules/mysql2/lib/packets/resultset_header.js:1:1","~wrapSafe internal/modules/cjs/loader.js:973:18","~(anonymous) ./node_modules/mysql2/lib/commands/index.js:1:1","~(anonymous) ./node_modules/mysql2/lib/commands/client_handshake.js:1:1","~getOptionsFromBinding internal/options.js:14:31","~(anonymous) ./node_modules/mysql2/lib/commands/query.js:1:1","~(anonymous) ./node_modules/mysql2/lib/parsers/text_parser.js:1:1","~(anonymous) ./node_modules/mysql2/lib/constants/charsets.js:1:1","~(anonymous) ./node_modules/mysql2/lib/commands/register_slave.js:1:1","~(anonymous) ./build/use-cases/store-isu-condition.js:1:1","~(anonymous) ./build/utils/database.js:1:1","(C++) _IO_fwrite","~createApplication ./node_modules/express/lib/express.js:37:27","~merge ./node_modules/merge-descriptors/index.js:34:15","~forEachOwnPropertyName ./node_modules/merge-descriptors/index.js:48:74","~init ./node_modules/express/lib/application.js:57:25","~defaultConfiguration ./node_modules/express/lib/application.js:70:57","~enable ./node_modules/express/lib/application.js:452:29","~set ./node_modules/express/lib/application.js:352:23","~app.<computed> ./node_modules/express/lib/application.js:473:25","~route ./node_modules/express/lib/router/index.js:491:29","~Layer ./node_modules/express/lib/router/layer.js:33:15"];
+levels = [[0,1,0,0,80,5],[0,1,1,0,80,1],[0,1,2,0,2,2,0,78,14],[0,1,3,0,1,6,0,1,12,0,1,15,0,77,19],[0,1,4,0,1,7,0,1,13,0,1,16,0,77,20],[1,1,8,0,1,4,0,1,17,0,77,21],[1,1,9,0,1,4,0,1,18,0,77,22],[1,1,7,1,1,4,0,77,23],[1,1,8,2,74,24,0,2,177,0,1,184],[1,1,10,2,74,25,0,1,178,0,1,180,0,1,185],[1,1,7,2,74,19,0,1,4,0,1,181,0,1,186],[1,1,8,2,71,20,0,1,26,0,2,41,0,1,179,0,1,182,0,1,4],[1,1,11,2,71,21,0,1,27,0,2,44,0,1,4,0,1,183,0,1,4],[1,1,4,2,71,22,0,1,28,0,1,45,0,1,52,0,1,4,0,1,4],[1,1,4,2,4,35,0,2,51,0,22,53,0,12,105,0,7,137,0,23,154,0,1,174,0,1,4,0,1,46,0,1,151,1,1,4],[4,4,24,0,2,24,0,22,24,0,12,24,0,7,24,0,23,24,0,1,24,0,1,29,0,1,47,0,1,152],[4,4,25,0,2,25,0,22,25,0,12,25,0,7,25,0,23,25,0,1,25,0,1,30,0,1,48,0,1,153],[4,4,19,0,2,19,0,22,19,0,12,19,0,7,19,0,23,19,0,1,19,0,1,31,0,1,4,0,1,4],[4,4,20,0,2,41,0,22,20,0,12,20,0,7,20,0,23,20,0,1,20,0,1,4,0,1,4,0,1,4],[4,4,21,0,2,44,0,22,21,0,12,21,0,6,21,0,1,144,0,23,21,0,1,21,0,1,32,1,1,4],[4,1,16,0,3,22,0,2,52,0,22,22,0,12,22,0,6,22,1,23,22,0,1,22,0,1,33],[4,1,17,0,3,38,0,2,17,0,22,54,0,3,106,0,7,109,0,2,133,0,3,138,0,3,145,1,23,155,0,1,175,0,1,7],[4,1,36,0,3,24,0,1,4,0,1,36,0,20,24,0,2,98,0,3,24,0,7,24,0,2,24,0,3,24,0,3,24,1,23,24,0,1,24,0,1,8],[4,1,37,0,3,25,0,1,4,0,1,4,0,20,25,0,2,99,0,3,25,0,7,25,0,2,25,0,3,25,0,3,25,1,23,25,0,1,25,0,1,34],[4,1,4,0,3,19,2,20,19,0,2,24,0,3,19,0,7,19,0,2,19,0,1,4,0,2,19,0,3,19,1,23,19,0,1,19,0,1,4],[5,2,20,0,1,41,2,20,20,0,2,25,0,2,20,0,1,41,0,7,20,0,1,20,0,1,41,1,2,20,0,3,20,1,23,20,0,1,41],[5,2,21,0,1,49,2,20,21,0,2,19,0,2,21,0,1,44,0,7,21,0,1,21,0,1,44,1,2,21,0,3,21,1,23,21,0,1,44],[5,2,22,0,1,50,2,19,22,0,1,57,0,2,20,0,2,22,0,1,52,0,7,22,0,1,57,0,1,71,1,2,22,0,3,22,1,23,22,0,1,52],[5,2,39,0,1,4,2,1,50,0,1,55,0,14,65,0,2,91,0,1,96,0,1,60,0,2,21,0,2,107,0,1,17,0,1,110,0,6,112,0,1,136,0,1,45,1,1,139,0,1,143,0,3,146,1,1,4,0,22,156,0,1,151],[5,2,24,3,1,4,0,1,24,0,14,24,0,2,24,0,1,24,0,1,61,0,2,22,0,2,24,0,1,4,0,1,24,0,6,113,0,1,4,0,1,46,1,1,24,0,1,24,0,3,24,2,22,24,0,1,152],[5,2,25,4,1,25,0,14,25,0,2,25,0,1,25,0,1,62,0,2,100,0,2,25,0,1,4,0,1,25,0,6,114,0,1,4,0,1,47,1,1,25,0,1,25,0,3,25,2,22,25,0,1,153],[5,2,19,4,1,19,0,14,19,0,2,19,0,1,19,0,1,63,0,2,24,0,2,19,1,1,19,0,6,4,1,1,48,1,1,19,0,1,19,0,3,19,2,22,19,0,1,4],[5,2,20,4,1,20,0,14,20,0,2,20,0,1,41,0,1,64,0,2,25,0,2,20,1,1,41,0,6,115,1,1,134,1,1,20,0,1,41,0,2,20,0,1,41,2,22,20,0,1,4],[5,2,21,4,1,21,0,14,21,0,2,21,0,1,44,0,1,4,0,2,19,0,2,21,1,1,44,0,6,116,1,1,135,1,1,21,0,1,44,0,2,21,0,1,44,2,22,21,0,1,176],[5,2,22,4,1,22,0,14,22,0,2,22,0,1,36,0,1,4,0,2,20,0,2,22,1,1,52,0,6,4,1,1,4,1,1,22,0,1,45,0,2,22,0,1,52,2,21,22,0,1,57],[5,1,40,0,1,43,4,1,56,0,2,66,0,2,68,0,1,72,0,9,75,0,2,92,0,1,97,0,1,4,0,2,21,0,2,108,1,1,17,0,1,4,0,4,117,0,1,128,3,1,140,0,1,46,0,2,147,0,1,150,2,10,157,0,5,163,0,6,167,0,1,136],[5,1,24,0,1,24,4,1,24,0,2,24,0,2,24,0,1,24,0,8,24,0,1,76,0,2,24,2,2,22,0,2,24,1,1,4,0,1,4,0,4,118,0,1,129,3,1,24,0,1,47,0,2,24,3,10,24,0,1,4,0,4,24,0,6,24,0,1,4],[5,1,25,0,1,25,4,1,25,0,2,25,0,2,25,0,1,25,0,8,25,0,1,77,0,2,25,2,2,101,0,2,25,1,1,111,1,1,119,0,1,121,0,2,124,0,1,130,3,1,25,0,1,48,0,2,25,3,10,25,0,1,4,0,4,25,0,6,25,0,1,4],[5,1,19,0,1,19,4,1,19,0,2,19,0,2,19,0,1,19,0,8,19,0,1,4,0,2,19,2,2,24,0,2,19,3,1,4,0,1,4,0,2,4,0,1,131,3,1,19,0,1,4,0,2,19,3,10,19,1,4,19,0,6,19],[5,1,41,0,1,41,4,1,20,0,1,20,0,1,41,0,2,20,0,1,20,0,8,20,0,1,4,0,2,20,2,2,25,0,1,26,0,1,41,3,1,4,0,1,122,0,2,125,0,1,4,3,1,20,1,2,20,3,10,20,1,3,20,0,1,41,0,6,20],[5,1,42,0,1,44,4,1,21,0,1,21,0,1,44,0,2,21,0,1,21,0,8,21,1,2,21,2,2,19,0,1,27,0,1,44,3,1,120,0,1,123,0,2,126,0,1,4,3,1,21,1,2,21,3,10,21,1,3,21,0,1,44,0,6,21],[5,1,16,0,1,45,4,1,57,0,1,57,0,1,52,0,2,22,0,1,22,0,8,22,1,2,22,2,2,20,0,1,30,0,1,52,4,1,4,0,2,4,0,1,132,3,1,22,1,2,22,3,10,22,1,2,22,0,1,57,0,1,45,0,6,22],[5,1,17,0,1,46,4,1,58,0,1,67,0,1,17,0,1,69,0,1,70,0,1,73,0,7,78,0,1,89,1,2,93,2,2,21,0,1,4,0,1,17,4,1,4,0,2,4,4,1,141,1,2,148,3,10,158,1,1,164,0,1,165,0,1,4,0,1,46,0,1,4,0,1,168,0,3,170,0,1,173],[5,1,36,0,1,47,4,1,59,0,1,4,0,1,18,0,1,4,0,1,24,0,1,24,0,6,24,0,1,87,0,1,24,1,1,24,0,1,95,2,2,22,1,1,4,4,1,4,0,2,127,4,1,24,1,2,24,3,10,24,1,1,4,0,1,24,1,1,47,1,1,24,0,3,24,0,1,24],[5,1,37,0,1,48,4,1,4,1,1,4,1,1,25,0,1,25,0,6,25,0,1,88,0,1,25,1,1,25,0,1,4,2,2,102,1,1,4,11,1,25,1,2,25,3,10,25,1,1,4,0,1,25,1,1,48,1,1,25,0,3,25,0,1,25],[5,1,4,0,1,36,8,1,19,0,1,19,0,6,19,0,1,4,0,1,19,1,1,19,0,1,4,2,2,24,13,1,19,1,2,19,3,1,4,0,9,19,2,1,19,1,1,4,1,1,19,0,3,19,0,1,19],[6,1,4,8,1,41,0,1,41,0,4,20,0,2,41,0,1,4,0,1,20,1,1,20,0,1,4,2,2,25,13,1,20,1,1,20,0,1,41,4,9,20,2,1,20,1,1,120,1,1,20,0,2,20,0,1,41,0,1,41],[15,1,44,0,1,44,0,4,21,0,2,44,1,1,21,1,1,21,3,2,19,13,1,21,1,1,21,0,1,44,4,9,21,2,1,21,3,1,21,0,2,21,0,1,42,0,1,42],[15,1,71,0,1,45,0,4,22,0,1,52,0,1,71,1,1,22,1,1,22,3,1,20,0,1,41,13,1,22,1,1,22,0,1,4,4,9,22,2,1,22,3,1,22,0,2,22,0,1,16,0,1,16],[15,1,17,0,1,46,0,2,79,0,2,84,0,1,17,0,1,45,1,1,90,1,1,94,3,1,21,0,1,42,13,1,142,1,1,149,0,1,4,4,8,159,0,1,160,2,1,166,3,1,13,0,2,171,0,1,17,0,1,4],[15,1,36,0,1,47,0,1,4,0,1,80,0,1,24,0,1,86,0,1,36,0,1,46,1,1,4,1,1,24,3,1,22,0,1,16,13,1,24,1,1,4,0,1,4,4,8,4,0,1,24,2,1,4,3,1,169,0,2,24,0,1,4,0,1,4],[15,1,4,0,1,48,1,1,4,0,1,25,0,1,4,0,1,4,0,1,47,3,1,25,3,1,103,0,1,17,13,1,25,7,8,4,0,1,25,6,1,4,0,2,25,0,1,4],[16,1,74,1,1,81,0,1,19,0,1,4,1,1,48,3,1,19,3,1,24,0,1,36,13,1,19,15,1,19,7,2,19,0,1,4],[16,1,4,1,1,82,0,1,20,2,1,4,3,1,20,3,1,25,0,1,97,13,1,26,15,1,161,7,1,20,0,1,41],[18,1,83,0,1,85,6,1,85,3,1,19,0,1,4,13,1,27,15,1,50,7,1,21,0,1,44],[18,1,4,0,1,4,6,1,4,3,1,4,0,1,104,13,1,30,15,1,162,7,1,22,0,1,52],[18,1,4,0,1,4,6,1,4,3,1,4,14,1,31,15,1,4,7,1,172,0,1,17],[30,1,4,14,1,4,23,1,4,0,1,4],[69,1,4,0,1,4]];
+numTicks = 81;
+
+let rangeMin = 0;
+let rangeMax = 1;
+let topLevel = 0;
+let query = '';
+let graphWidth, pxPerTick;
+
+const pxPerLevel = 18;
+const collapseThreshold = 5;
+const hideThreshold = 0.5;
+const labelThreshold = 20;
+
+highlightEl.style.height = pxPerLevel + 'px';
+
+if (levels) {
+    init();
+}
+
+function init() {
+    document.body.classList.add('loaded');
+
+    // delta-decode bar positions
+    for (const level of levels) {
+        let prev = 0;
+        for (let i = 0; i < level.length; i += 3) {
+            level[i] += prev;
+            prev = level[i] + level[i + 1];
+        }
+    }
+
+    updateFromHash();
+    render();
+}
+
+window.onhashchange = () => {
+    updateFromHash();
+    render();
+};
+canvas.onclick = (e) => {
+    const {i, j} = xyToBar(e.offsetX, e.offsetY);
+    if (j === -1) return;
+    window.location.hash = [i, j].join(',');
+    removeHover();
+};
+document.getElementById('reset').onclick = () => {
+    searchEl.value = query = '';
+    window.location.hash = '';
+    render();
+};
+window.onresize = render;
+
+searchEl.oninput = (e) => {
+    query = e.target.value;
+    render();
+};
+
+function updateFromHash() {
+    const [i, j] = window.location.hash.substr(1).split(',').map(Number);
+
+    if (!isNaN(i) && !isNaN(j)) {
+        topLevel = i;
+        rangeMin = levels[i][j] / numTicks;
+        rangeMax = (levels[i][j] + levels[i][j + 1]) / numTicks;
+    } else {
+        topLevel = 0;
+        rangeMin = 0;
+        rangeMax = 1;
+    }
+}
+
+function tickToX(i) {
+    return (i - numTicks * rangeMin) * pxPerTick;
+}
+
+function render() {
+    if (!levels) return;
+
+    graphWidth = canvas.width = canvas.clientWidth;
+    canvas.height = pxPerLevel * (levels.length - topLevel);
+    canvas.style.height = canvas.height + 'px';
+
+    if (devicePixelRatio > 1) {
+        canvas.width *= 2;
+        canvas.height *= 2;
+        ctx.scale(2, 2);
+    }
+
+    pxPerTick = graphWidth / numTicks / (rangeMax - rangeMin);
+
+    ctx.textBaseline = 'middle';
+    ctx.font = '10px Tahoma, sans-serif';
+    ctx.strokeStyle = 'white';
+
+    for (let i = 0; i < levels.length - topLevel; i++) {
+        const level = levels[topLevel + i];
+
+        for (let j = 0; j < level.length; j += 3) {
+            const barIndex = level[j];
+            const x = tickToX(barIndex);
+            const y = i * pxPerLevel;
+            let numBarTicks = level[j + 1];
+
+            const inQuery = query && (names[level[j + 2]].indexOf(query) >= 0) || false;
+
+            // merge very small blocks into big "collapsed" ones for performance
+            const collapsed = numBarTicks * pxPerTick <= collapseThreshold;
+            if (collapsed) {
+                while (
+                    j < level.length - 3 &&
+                    barIndex + numBarTicks === level[j + 3] &&
+                    level[j + 4] * pxPerTick <= collapseThreshold &&
+                    (inQuery === (query && (names[level[j + 5]].indexOf(query) >= 0) || false))
+                ) {
+                    j += 3;
+                    numBarTicks += level[j + 1];
+                }
+            }
+
+            const sw = numBarTicks * pxPerTick - (collapsed ? 0 : 0.5);
+            const sh = pxPerLevel - 0.5;
+
+            if (x < -1 || x + sw > graphWidth + 1 || sw < hideThreshold) continue;
+
+            ctx.beginPath();
+            ctx.rect(x, y, sw, sh);
+
+            const ratio = numBarTicks / numTicks;
+
+            if (!collapsed) {
+                ctx.stroke();
+                const intensity = Math.min(1, ratio * Math.pow(1.16, i) / (rangeMax - rangeMin));
+                const h = 50 - 50 * intensity;
+                const l = 65 + 7 * intensity;
+                ctx.fillStyle = inQuery ? 'lightgreen' : `hsl(${h}, 100%, ${l}%)`;
+            } else {
+                ctx.fillStyle = inQuery ? 'lightgreen' : '#eee';
+            }
+            ctx.fill();
+
+            if (!collapsed && sw >= labelThreshold) {
+
+                const percent = Math.round(10000 * ratio) / 100;
+                const name = `${names[level[j + 2]]} (${percent}%, ${numBarTicks} samples)`;
+
+                ctx.save();
+                ctx.clip();
+                ctx.fillStyle = 'black';
+                ctx.fillText(name, Math.max(x, 0) + 1, y + sh / 2);
+                ctx.restore();
+            }
+        }
+    }
+}
+
+// pixel coordinates to bar coordinates in the levels array
+function xyToBar(x, y) {
+    const i = Math.floor(y / pxPerLevel) + topLevel;
+    const j = binarySearchLevel(x, levels[i]);
+    return {i, j};
+}
+
+// binary search of a block in a stack level
+function binarySearchLevel(x, level) {
+    let i = 0;
+    let j = level.length - 3;
+    while (i <= j) {
+        const m = 3 * ((i / 3 + j / 3) >> 1);
+        const x0 = tickToX(level[m]);
+        const x1 = tickToX(level[m] + level[m + 1]);
+        if (x0 <= x && x1 >= x) {
+            return x1 - x0 > collapseThreshold ? m : -1;
+        }
+        if (x0 > x) {
+            j = m - 3;
+        } else {
+            i = m + 3;
+        }
+    }
+    return -1;
+}
+
+if (window.orientation === undefined) {
+    canvas.onmousemove = addHover;
+    canvas.onmouseout = window.onscroll = removeHover;
+}
+
+function removeHover() {
+    canvas.style.cursor = '';
+    highlightEl.style.display = 'none';
+    tooltipEl.style.display = 'none';
+}
+
+function addHover(e) {
+    const {i, j} = xyToBar(e.offsetX, e.offsetY);
+
+    if (j === -1 || e.offsetX < 0 || e.offsetX > graphWidth) {
+        removeHover();
+        return;
+    }
+
+    canvas.style.cursor = 'pointer';
+
+    const level = levels[i];
+    const x = tickToX(level[j]);
+    const y = (i - topLevel) * pxPerLevel;
+    const sw = tickToX(level[j] + level[j + 1]) - x;
+
+    highlightEl.style.display = 'block';
+    highlightEl.style.left = x + 'px';
+    highlightEl.style.top = (canvas.offsetTop + y) + 'px';
+    highlightEl.style.width = sw + 'px';
+
+    const numBarTicks = level[j + 1];
+    const percent = Math.round(10000 * numBarTicks / numTicks) / 100;
+    const time = `<span class="time">(${percent}%, ${numBarTicks} samples)</span>`;
+    let content = names[level[j + 2]];
+    if (content[0] !== '(') content = content.replace(' ', ` ${time}<br><span class="path">`) + '</span>';
+    else content += ` ${time}`;
+
+    tooltipEl.innerHTML = content;
+    tooltipEl.style.display = 'block';
+    tooltipEl.style.left = (Math.min(e.offsetX + 15 + tooltipEl.clientWidth, graphWidth) - tooltipEl.clientWidth) + 'px';
+    tooltipEl.style.top = (canvas.offsetTop + e.offsetY + 12) + 'px';
+}
+
+// (function frame() { if (levels) render(); requestAnimationFrame(frame); })();
+
+
+</script>
+</body>
+</html>

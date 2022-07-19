@@ -83,7 +83,7 @@ install-alp:
 setup:
 	@make install-alp
 	sudo apt update && sudo apt install -y percona-toolkit jq net-tools dstat graphviz
-	npm install -g flamebearer http-server
+	npm install -g ts-node flamebearer http-server
 
 # 設定ファイルの取得、反映
 check-server-id:

@@ -2,6 +2,7 @@ import { spawn } from "child_process";
 import { readFileSync } from "fs";
 import { readFile } from "fs/promises";
 import path from "path";
+import cluster from "cluster";
 
 import axios from "axios";
 import session from "cookie-session";

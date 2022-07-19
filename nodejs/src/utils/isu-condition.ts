@@ -29,3 +29,13 @@ export function isValidConditionFormat(condition: string): boolean {
 
   return idxCondStr === condition.length;
 }
+
+export function isValidThenSplit(condition: string) {
+  const pattern = /(is_dirty|is_overweight|is_broken)=(true|false)(?:,|)/g;
+  let myArray = condition.match(pattern);
+  console.log(myArray);
+
+  return myArray;
+}
+
+// isValidThenSplit("is_dirty=true,is_overweight=false,is_broken=true");
