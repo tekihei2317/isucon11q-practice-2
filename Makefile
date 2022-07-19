@@ -14,7 +14,9 @@ APP_SERVICE=isucondition.nodejs.service
 reload-app:
 	sudo systemctl restart $(APP_SERVICE)
 status-app:
-	sudo systemctl status  $(APP_SERVICE)
+	sudo systemctl status $(APP_SERVICE)
+watch-log-app:
+	sudo journalctl -u $(APP_SERVICE) -n 10 -f 
 
 MYSQL_SERVICE=mysql.service
 reload-mysql:
@@ -34,13 +36,13 @@ clear-logs:
 	echo '' | sudo tee $(NGINX_LOG) > /dev/null
 	echo '' | sudo tee $(MYSQL_LOG) > /dev/null
 
-before-bench: clear-logs
+before-bench: clear-logs watch-log-app
 
 bench:
 	cd ../bench && ./bench -all-addresses 127.0.0.11 -target 127.0.0.11:443 -tls -jia-service-url http://127.0.0.1:4999
 
 ALPSORT=sum
-ALPM="TODO:"
+ALPM="/api/condition/[0-9a-z-]+,/api/isu/[0-9a-z-]+/icon,/api/isu/[0-9a-z-],/isu/[0-9a-z-]+/condition,/isu/[0-9a-z-]+/graph,/isu/[0-9a-z-]+"
 OUTFORMAT=count,method,uri,min,max,sum,avg,p99,1xx,2xx,3xx,4xx,5xx
 .PHONY: alp
 alp:
