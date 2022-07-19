@@ -13,6 +13,7 @@ import multer, { MulterError } from "multer";
 import mysql, { RowDataPacket } from "mysql2/promise";
 import qs from "qs";
 import { storeIsuCondition } from "./use-cases/store-isu-condition";
+import { getIsuIcon } from "./use-cases/get-isu-icon";
 
 interface Config extends RowDataPacket {
   name: string;
@@ -575,34 +576,7 @@ app.get(
 app.get(
   "/api/isu/:jia_isu_uuid/icon",
   async (req: express.Request<{ jia_isu_uuid: string }>, res) => {
-    const db = await pool.getConnection();
-    try {
-      let jiaUserId: string;
-      try {
-        jiaUserId = await getUserIdFromSession(req, db);
-      } catch (err) {
-        if (err instanceof ErrorWithStatus && err.status === 401) {
-          return res.status(401).type("text").send("you are not signed in");
-        }
-        console.error(err);
-        return res.status(500).send();
-      }
-
-      const jiaIsuUUID = req.params.jia_isu_uuid;
-      const [[row]] = await db.query<(RowDataPacket & { image: Buffer })[]>(
-        "SELECT `image` FROM `isu` WHERE `jia_user_id` = ? AND `jia_isu_uuid` = ?",
-        [jiaUserId, jiaIsuUUID]
-      );
-      if (!row) {
-        return res.status(404).type("text").send("not found: isu");
-      }
-      return res.status(200).send(row.image);
-    } catch (err) {
-      console.error(`db error: ${err}`);
-      return res.status(500).send();
-    } finally {
-      db.release();
-    }
+    return getIsuIcon(req, res);
   }
 );
 
