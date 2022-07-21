@@ -1,6 +1,7 @@
 import express from "express";
 import { pool, RowDataPacket } from "../utils/database";
 import { getUserIdFromSession } from "../utils/auth";
+import { ErrorWithStatus } from "../types";
 
 export async function getIsuIcon(
   req: express.Request<{ jia_isu_uuid: string }>,

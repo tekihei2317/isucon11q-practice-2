@@ -1,5 +1,6 @@
 import express from "express";
 import mysql, { RowDataPacket } from "mysql2/promise";
+import { ErrorWithStatus } from "../types";
 
 export async function getUserIdFromSession(
   req: express.Request,

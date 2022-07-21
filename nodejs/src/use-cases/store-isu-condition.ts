@@ -1,6 +1,7 @@
 import express from "express";
 import { pool, RowDataPacket } from "../utils/database";
 import { isValidConditionFormat } from "../utils/isu-condition";
+import { PostIsuConditionRequest } from "../types";
 
 function isValidPostIsuConditionRequest(
   body: PostIsuConditionRequest[]

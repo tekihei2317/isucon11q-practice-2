@@ -1,11 +1,11 @@
-interface PostIsuConditionRequest {
+export interface PostIsuConditionRequest {
   is_sitting: boolean;
   condition: string;
   message: string;
   timestamp: number;
 }
 
-class ErrorWithStatus extends Error {
+export class ErrorWithStatus extends Error {
   public status: number;
   constructor(status: number, message: string) {
     super(message);

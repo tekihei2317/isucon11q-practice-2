@@ -121,3 +121,5 @@ get-trend:
 # 認証が必要なためエラーになる
 get-condition:
 	curl $(BASE_URL)/api/condition/3a8ae675-3702-45b5-b1eb-1e56e96738ea
+get-isu-icon:
+	curl $(BASE_URL)/api/isu/3a8ae675-3702-45b5-b1eb-1e56e96738ea/icon

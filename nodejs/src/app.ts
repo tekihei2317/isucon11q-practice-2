@@ -573,12 +573,7 @@ app.get(
 
 // GET /api/isu/:jia_isu_uuid/icon
 // ISUのアイコンを取得
-app.get(
-  "/api/isu/:jia_isu_uuid/icon",
-  async (req: express.Request<{ jia_isu_uuid: string }>, res) => {
-    return getIsuIcon(req, res);
-  }
-);
+app.get("/api/isu/:jia_isu_uuid/icon", getIsuIcon);
 
 interface GetIsuGraphQuery extends qs.ParsedQs {
   datetime?: string;
@@ -604,6 +599,7 @@ app.get(
         jiaUserId = await getUserIdFromSession(req, db);
       } catch (err) {
         if (err instanceof ErrorWithStatus && err.status === 401) {
+          console.log("you are not signed in");
           return res.status(401).type("text").send("you are not signed in");
         }
         console.error(err);
