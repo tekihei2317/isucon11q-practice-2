@@ -1,6 +1,9 @@
 import express from "express";
 import { pool, RowDataPacket } from "../utils/database";
-import { isValidConditionFormat } from "../utils/isu-condition";
+import {
+  isValidConditionFormat,
+  calculateConditionLevel,
+} from "../utils/isu-condition";
 import { PostIsuConditionRequest } from "../types";
 
 function isValidPostIsuConditionRequest(
@@ -57,18 +60,21 @@ export async function storeIsuCondition(
 
     const parameters = request.map((cond) => {
       const timestamp = new Date(cond.timestamp * 1000);
+      const [conditionLevel, Error] = calculateConditionLevel(cond.condition);
+
       return [
         jiaIsuUUID,
         timestamp,
         cond.is_sitting,
         cond.condition,
         cond.message,
+        conditionLevel,
       ];
     });
 
     await db.query(
       "INSERT INTO `isu_condition`" +
-        "	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`)" +
+        "	(`jia_isu_uuid`, `timestamp`, `is_sitting`, `condition`, `message`, `condition_level`)" +
         "	VALUES ?",
       [parameters]
     );
