@@ -958,18 +958,10 @@ async function getIsuConditions(
 // ISUのコンディションの文字列からコンディションレベルを計算
 function calculateConditionLevel(condition: string): [string, Error?] {
   let conditionLevel: string;
-  const warnCount = (() => {
-    let count = 0;
-    let pos = 0;
-    while (pos !== -1) {
-      pos = condition.indexOf("=true", pos);
-      if (pos >= 0) {
-        count += 1;
-        pos += 5;
-      }
-    }
-    return count;
-  })();
+  const pattern = /is_dirty=(true|false),is_overweight=(true|false),is_broken=(true|false)/;
+  let arr = condition.match(pattern) || [];
+  let warnCount = 0;
+  arr[1]=="true" && warnCount++; arr[2]=="true" && warnCount++; arr[3]=="true" && warnCount++;
   switch (warnCount) {
     case 0:
       conditionLevel = conditionLevelInfo;
