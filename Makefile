@@ -28,9 +28,13 @@ status-mysql:
 
 MYSQL_USER=isucon
 MYSQL_PASSWORD=isucon
+MYSQL_PASSWORD_S2=password
 MYSQL_DATABASE=isucondition
+MYSQL_HOST_S2=172.31.35.57
 enter-mysql:
 	mysql -u $(MYSQL_USER) -p$(MYSQL_PASSWORD) -D $(MYSQL_DATABASE)
+enter-s2-mysql:
+	mysql -u $(MYSQL_USER) -p$(MYSQL_PASSWORD_S2) -D $(MYSQL_DATABASE) -h $(MYSQL_HOST_S2)
 
 # 計測・分析
 clear-logs:
@@ -112,6 +116,8 @@ deploy-nginx-conf:
 
 deploy-db-conf:
 	sudo cp -R $(SERVER_ID)$(DB_CONF_PATH)/* $(DB_CONF_PATH)
+deploy-envsh:
+	sudo cp env.sh /home/isucon/env.sh
 
 # リクエスト
 BASE_URL=http://localhost:3000
