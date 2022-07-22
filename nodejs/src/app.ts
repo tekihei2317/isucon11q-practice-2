@@ -2,7 +2,6 @@ import { spawn } from "child_process";
 import { readFileSync } from "fs";
 import { readFile } from "fs/promises";
 import path from "path";
-import cluster from "cluster";
 
 import axios from "axios";
 import session from "cookie-session";
@@ -18,6 +17,8 @@ import {
   isValidConditionFormat,
   calculateConditionLevel,
 } from "./utils/isu-condition";
+import { IsuCondition } from "./types";
+import { getIsuCondition } from "./use-cases/get-isu-condition";
 
 interface Config extends RowDataPacket {
   name: string;
@@ -44,16 +45,6 @@ interface GetIsuListResponse {
   name: string;
   character: string;
   latest_isu_condition?: GetIsuConditionResponse;
-}
-
-interface IsuCondition extends RowDataPacket {
-  id: number;
-  jia_isu_uuid: string;
-  timestamp: Date;
-  is_sitting: number;
-  condition: string;
-  message: string;
-  created_at: Date;
 }
 
 interface InitializeResponse {
@@ -113,7 +104,6 @@ interface TrendCondition {
 }
 
 const sessionName = "isucondition_nodejs";
-const conditionLimit = 20;
 const frontendContentsPath = "../public";
 const jiaJWTSigningKeyPath = "../ec256-public.pem";
 const defaultIconFilePath = "../NoImage.jpg";
@@ -379,21 +369,13 @@ app.get("/api/isu", async (req, res) => {
       }
       let formattedCondition = undefined;
       if (foundLastCondition) {
-        const [conditionLevel, err] = calculateConditionLevel(
-          lastCondition.condition
-        );
-        if (err) {
-          console.error(err);
-          await db.rollback();
-          return res.status(500).send();
-        }
         formattedCondition = {
           jia_isu_uuid: lastCondition.jia_isu_uuid,
           isu_name: isu.name,
           timestamp: lastCondition.timestamp.getTime() / 1000,
           is_sitting: !!lastCondition.is_sitting,
           condition: lastCondition.condition,
-          condition_level: conditionLevel,
+          condition_level: lastCondition.condition_level,
           message: lastCondition.message,
         };
       }
@@ -463,7 +445,7 @@ app.post(
             "INSERT INTO `isu` (`jia_isu_uuid`, `name`, `image`, `jia_user_id`) VALUES (?, ?, ?, ?)",
             [jiaIsuUUID, isuName, image, jiaUserId]
           );
-        } catch (err) {
+        } catch (err: any) {
           await db.rollback();
           if (err.errno === mysqlErrNumDuplicateEntry) {
             return res.status(409).type("text").send("duplicated: isu");
@@ -824,139 +806,9 @@ function calculateGraphDataPoint(
   return [dataPoint, undefined];
 }
 
-interface GetIsuConditionsQuery extends qs.ParsedQs {
-  start_time: string;
-  end_time: string;
-  condition_level: string;
-}
-
 // GET /api/condition/:jia_isu_uuid
 // ISUのコンディションを取得
-app.get(
-  "/api/condition/:jia_isu_uuid",
-  async (
-    req: express.Request<
-      { jia_isu_uuid: string },
-      unknown,
-      never,
-      GetIsuConditionsQuery
-    >,
-    res
-  ) => {
-    const db = await pool.getConnection();
-    try {
-      let jiaUserId: string;
-      try {
-        jiaUserId = await getUserIdFromSession(req, db);
-      } catch (err) {
-        if (err instanceof ErrorWithStatus && err.status === 401) {
-          return res.status(401).type("text").send("you are not signed in");
-        }
-        console.error(err);
-        return res.status(500).send();
-      }
-
-      const jiaIsuUUID = req.params.jia_isu_uuid;
-
-      const endTimeInt = parseInt(req.query.end_time, 10);
-      if (isNaN(endTimeInt)) {
-        return res.status(400).type("text").send("bad format: end_time");
-      }
-      const endTime = new Date(endTimeInt * 1000);
-      if (!req.query.condition_level) {
-        return res.status(400).type("text").send("missing: condition_level");
-      }
-      const conditionLevel = new Set(req.query.condition_level.split(","));
-
-      const startTimeStr = req.query.start_time;
-      let startTime = new Date(0);
-      if (startTimeStr) {
-        const startTimeInt = parseInt(startTimeStr, 10);
-        if (isNaN(startTimeInt)) {
-          return res.status(400).type("text").send("bad format: start_time");
-        }
-        startTime = new Date(startTimeInt * 1000);
-      }
-
-      const [[row]] = await db.query<(RowDataPacket & { name: string })[]>(
-        "SELECT name FROM `isu` WHERE `jia_isu_uuid` = ? AND `jia_user_id` = ?",
-        [jiaIsuUUID, jiaUserId]
-      );
-      if (!row) {
-        return res.status(404).type("text").send("not found: isu");
-      }
-
-      const conditionResponse: GetIsuConditionResponse[] =
-        await getIsuConditions(
-          db,
-          jiaIsuUUID,
-          endTime,
-          conditionLevel,
-          startTime,
-          conditionLimit,
-          row.name
-        );
-      res.status(200).json(conditionResponse);
-    } catch (err) {
-      console.error(`db error: ${err}`);
-      return res.status(500).send();
-    } finally {
-      db.release();
-    }
-  }
-);
-
-// ISUのコンディションをDBから取得
-async function getIsuConditions(
-  db: mysql.Connection,
-  jiaIsuUUID: string,
-  endTime: Date,
-  conditionLevel: Set<string>,
-  startTime: Date,
-  limit: number,
-  isuName: string
-): Promise<GetIsuConditionResponse[]> {
-  const [conditions] =
-    startTime.getTime() === 0
-      ? await db.query<IsuCondition[]>(
-          "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?" +
-            "	AND `timestamp` < ?" +
-            "	ORDER BY `timestamp` DESC",
-          [jiaIsuUUID, endTime]
-        )
-      : await db.query<IsuCondition[]>(
-          "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?" +
-            "	AND `timestamp` < ?" +
-            "	AND ? <= `timestamp`" +
-            "	ORDER BY `timestamp` DESC",
-          [jiaIsuUUID, endTime, startTime]
-        );
-
-  let conditionsResponse: GetIsuConditionResponse[] = [];
-  conditions.forEach((condition) => {
-    const [cLevel, err] = calculateConditionLevel(condition.condition);
-    if (err) {
-      return;
-    }
-    if (conditionLevel.has(cLevel)) {
-      conditionsResponse.push({
-        jia_isu_uuid: condition.jia_isu_uuid,
-        isu_name: isuName,
-        timestamp: condition.timestamp.getTime() / 1000,
-        is_sitting: !!condition.is_sitting,
-        condition: condition.condition,
-        condition_level: cLevel,
-        message: condition.message,
-      });
-    }
-  });
-
-  if (conditionsResponse.length > limit) {
-    conditionsResponse = conditionsResponse.slice(0, limit);
-  }
-
-  return conditionsResponse;
-}
+app.get("/api/condition/:jia_isu_uuid", getIsuCondition);
 
 // GET /api/trend
 // ISUの性格毎の最新のコンディション情報
@@ -986,13 +838,7 @@ app.get("/api/trend", async (req, res) => {
 
         if (conditions.length > 0) {
           const isuLastCondition = conditions[0];
-          const [conditionLevel, err] = calculateConditionLevel(
-            isuLastCondition.condition
-          );
-          if (err) {
-            console.error(err);
-            return res.status(500).send();
-          }
+          const conditionLevel = isuLastCondition.condition_level;
           const trendCondition: TrendCondition = {
             isu_id: isu.id,
             timestamp: isuLastCondition.timestamp.getTime() / 1000,
