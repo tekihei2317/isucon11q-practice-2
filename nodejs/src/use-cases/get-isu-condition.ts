@@ -35,16 +35,20 @@ async function getIsuConditions(
     startTime.getTime() === 0
       ? await db.query<IsuCondition[]>(
           "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?" +
+            " and condition_level in (?)" +
             "	AND `timestamp` < ?" +
-            "	ORDER BY `timestamp` DESC",
-          [jiaIsuUUID, endTime]
+            "	ORDER BY `timestamp` DESC" +
+            ` limit ${limit}`,
+          [jiaIsuUUID, [...conditionLevel], endTime]
         )
       : await db.query<IsuCondition[]>(
           "SELECT * FROM `isu_condition` WHERE `jia_isu_uuid` = ?" +
+            " and condition_level in (?)" +
             "	AND `timestamp` < ?" +
             "	AND ? <= `timestamp`" +
-            "	ORDER BY `timestamp` DESC",
-          [jiaIsuUUID, endTime, startTime]
+            "	ORDER BY `timestamp` DESC" +
+            ` limit ${limit}`,
+          [jiaIsuUUID, [...conditionLevel], endTime, startTime]
         );
 
   let conditionsResponse: GetIsuConditionResponse[] = [];
@@ -61,10 +65,6 @@ async function getIsuConditions(
       });
     }
   });
-
-  if (conditionsResponse.length > limit) {
-    conditionsResponse = conditionsResponse.slice(0, limit);
-  }
 
   return conditionsResponse;
 }
